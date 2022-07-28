@@ -4,29 +4,10 @@ import 'package:mineral/console.dart';
 import 'package:mineral/core.dart';
 import 'package:mineral/src/exceptions/already_exist.dart';
 import 'package:mineral/src/internal/managers/command_manager.dart';
+import 'package:mineral/src/internal/managers/context_menu_manager.dart';
 import 'package:mineral/src/internal/managers/store_manager.dart';
 
 import 'event_manager.dart';
-
-class Module {
-  final String identifier;
-  final String label;
-  final String? description;
-
-  const Module({ required this.identifier, required this.label, this.description });
-}
-
-abstract class MineralModule {
-  late final String identifier;
-  late final String label;
-  late final String? description;
-
-  abstract List<MineralEvent> events;
-  abstract List<MineralCommand> commands;
-  abstract List<MineralStore> stores;
-
-  Future<void> init () async {}
-}
 
 class ModuleManager {
   final Map<String, MineralModule> _modules = {};
@@ -55,6 +36,7 @@ class ModuleManager {
     EventManager eventManager = ioc.singleton(ioc.services.event);
     CommandManager commandManager = ioc.singleton(ioc.services.command);
     StoreManager storeManager = ioc.singleton(ioc.services.store);
+    ContextMenuManager contextMenuManager = ioc.singleton(ioc.services.contextMenu);
 
     _modules.forEach((key, module) async {
       await module.init();
@@ -67,8 +49,12 @@ class ModuleManager {
         commandManager.add(command);
       }
 
-      for (MineralStore event in module.stores) {
-        storeManager.add(event);
+      for (MineralStore store in module.stores) {
+        storeManager.add(store);
+      }
+
+      for (MineralContextMenu contextMenu in module.contextMenu) {
+        contextMenuManager.add(contextMenu);
       }
 
       Console.debug(
